@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <sys/select.h>
 #define CHECK_MALLOC(s)                                                       \
     if ((s) == NULL)                                                          \
     {                                                                         \
@@ -19,6 +20,32 @@ void clean_stdin(void)
     {
         c = getchar();
     } while (c != '\n' && c != EOF);
+}
+int kbhit(void)
+{
+    struct termios oldt, newt;
+    int ch;
+    int oldf;
+
+    tcgetattr(STDIN_FILENO, &oldt);
+    newt = oldt;
+    newt.c_lflag &= ~(ICANON | ECHO);
+    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+    oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
+    fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
+
+    ch = getchar();
+
+    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+    fcntl(STDIN_FILENO, F_SETFL, oldf);
+
+    if (ch != EOF)
+    {
+        ungetc(ch, stdin);
+        return 1;
+    }
+
+    return 0;
 }
 struct snake
 {
@@ -409,7 +436,7 @@ void load(char a[][80], struct snake *head, struct food *point, int f, int c, ch
             head = increase_snake(head, a);
             create_board(a, head);
             point = create_food(a, point);
-            c += 1;
+            c += 1; //score
             if (c >= 20 && c < 40)
             {
                 level = 2;
@@ -469,7 +496,12 @@ void load(char a[][80], struct snake *head, struct food *point, int f, int c, ch
         printf("\t\t\tIK SANP ASA BHI\n\n");
         print_board(a);
         printf("\n\nyour score is %d\n\nLEVEL = %d\n\n", c, level);
-        scanf("%c", &direction);
+        //scanf("%c", &direction);
+        usleep(100000);
+        if (kbhit())
+        {
+            direction = getchar();
+        }
         system("clear");
     }
 }
