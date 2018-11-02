@@ -151,6 +151,8 @@ char get_snake(int i, int j, struct snake *start)
 void print_board(char a[][80])
 {
     int i, j;
+    printf("\t\t\t\tIK SANP ASA BHI\n\n");
+    printf("INSTRUCTIONS :\npress w a s d for up left down right and r for saving the game\npress * to exit\n\n");
     for (i = 0; i < 20; i++)
     {
         for (j = 0; j < 80; j++)
@@ -417,6 +419,64 @@ struct snake *check_move(char d, struct snake *head, char a[][80], int *f, int w
     }
     return head;
 }
+void itoa(int num, char *result)
+{
+    int r, i = 0, j = 0;
+    char t;
+    while (num != 0)
+    {
+        r = num % 10;
+        r = r + 48;
+        result[i++] = r;
+        num = num / 10;
+    }
+    result[i] = '\0';
+    i--;
+    while (i >= j)
+    {
+        t = result[i];
+        result[i] = result[j];
+        result[j] = t;
+        i--;
+        j++;
+    }
+}
+void write_to_file(char *d, char *str)
+{
+    FILE *f;
+    f = fopen(d, "w");
+    fprintf(f, "%s", str);
+    //printf("%s", str);
+    fclose(f);
+}
+void save(struct snake *head, struct food *point, int c)
+{
+    char sx[10], sy[10], *str = (char *)malloc(sizeof(char) * 10000), score[4];
+    itoa(c, score);
+    strcat(str, score);
+    while (head != NULL)
+    {
+        itoa(head->x, sx);
+        itoa(head->y, sy);
+        strcat(str, "s");
+        strcat(str, sx);
+        strcat(str, ",");
+        strcat(str, sy);
+        head = head->next;
+    }
+    while (point != NULL)
+    {
+        itoa(point->x, sx);
+        itoa(point->y, sy);
+        strcat(str, "f");
+        strcat(str, sx);
+        strcat(str, ",");
+        strcat(str, sy);
+        point = point->next;
+    }
+    write_to_file("save_file.txt", str);
+    //printf("\n%s\n", str);
+}
 void load(char a[][80], struct snake *head, struct food *point, int f, int c, char direction, struct food *mine)
 {
     long int i = 1;
@@ -431,12 +491,15 @@ void load(char a[][80], struct snake *head, struct food *point, int f, int c, ch
             printf("\ngame over\n\n\nyour score was %d\n\n", c);
             break;
         }
-        if (f == 0)
+        if (f == 0 || f == 3)
         {
-            head = increase_snake(head, a);
-            create_board(a, head);
-            point = create_food(a, point);
-            c += 1; //score
+            if (f == 0)
+            {
+                head = increase_snake(head, a);
+                create_board(a, head);
+                point = create_food(a, point);
+                c += 10; //score
+            }
             if (c >= 20 && c < 40)
             {
                 level = 2;
@@ -493,7 +556,6 @@ void load(char a[][80], struct snake *head, struct food *point, int f, int c, ch
             a[ptr->x][ptr->y] = ptr->value;
             ptr = ptr->next;
         }
-        printf("\t\t\tIK SANP ASA BHI\n\n");
         print_board(a);
         printf("\n\nyour score is %d\n\nLEVEL = %d\n\n", c, level);
         //scanf("%c", &direction);
@@ -503,63 +565,24 @@ void load(char a[][80], struct snake *head, struct food *point, int f, int c, ch
             direction = getchar();
         }
         system("clear");
+        if (direction == 'r' || c == 100)
+        {
+            break;
+        }
     }
-}
-void itoa(int num, char *result)
-{
-    int r, i = 0, j = 0;
-    char t;
-    while (num != 0)
+    if (direction == 'r')
     {
-        r = num % 10;
-        r = r + 48;
-        result[i++] = r;
-        num = num / 10;
+        save(head, point, c);
+        printf("\n\n\t\tYOUR GAME HAS BEEN SAVED\n\n\t\tTHANK YOU FOR PLAYING\n\n");
     }
-    result[i] = '\0';
-    i--;
-    while (i >= j)
+    if (c == 100)
     {
-        t = result[i];
-        result[i] = result[j];
-        result[j] = t;
-        i--;
-        j++;
+        printf("\n\n\t\tYOU WON");
     }
-}
-void write_to_file(char *d, char *str)
-{
-    FILE *f;
-    f = fopen(d, "w");
-    fprintf(f, "%s", str);
-    //printf("%s", str);
-    fclose(f);
-}
-void save(struct snake *head, struct food *point)
-{
-    char sx[10], sy[10], *str = (char *)malloc(sizeof(char) * 10000);
-    while (head != NULL)
+    if (direction == '*')
     {
-        itoa(head->x, sx);
-        itoa(head->y, sy);
-        strcat(str, "s");
-        strcat(str, sx);
-        strcat(str, ",");
-        strcat(str, sy);
-        head = head->next;
+        printf("\n\n\t\tTHANK YOU\n\n");
     }
-    while (point != NULL)
-    {
-        itoa(point->x, sx);
-        itoa(point->y, sy);
-        strcat(str, "f");
-        strcat(str, sx);
-        strcat(str, ",");
-        strcat(str, sy);
-        point = point->next;
-    }
-    write_to_file("save_file.txt", str);
-    //printf("\n%s\n", str);
 }
 char *get_in_string(char *dir)
 {
@@ -639,14 +662,20 @@ int myatoi(int s, int e, char *str)
     }
     return n;
 }
-void reload(struct snake **head, struct food **point)
+void reload(struct snake **head, struct food **point, int *c)
 {
     char *str = get_in_string("save_file.txt");
     // printf("\n%s\n", str);
     *head = NULL;
     *point = NULL;
     int i = 0, j, X, Y, flag = 0;
-    for (i = 0; str[i] != '\0';)
+    while (str[i] != 's')
+    {
+        printf("%d", i);
+        i++;
+    }
+    *c = myatoi(0, i, str);
+    for (; str[i] != '\0';)
     {
         flag = 0;
         if (str[i] == 's' || str[i] == 'f')
@@ -684,29 +713,54 @@ void reload(struct snake **head, struct food **point)
     }
     ptr->value = 'H';
 }
-
+int check_file(char *dir)
+{
+    struct stat statbuf;
+    stat(dir, &statbuf);
+    if (statbuf.st_size > 0)
+        return 1;
+    return 0;
+}
 int main()
 {
-    int f = 0, e = 0, c = 0, size;
-    char a[20][80], direction = 'a', choice;
+    int f = 0, e = 0, size, p, c = 0;
+    char a[20][80], direction = 'a';
     struct snake *head = NULL;
     struct food *point = NULL, *mine = NULL;
-    head = create_snake(head);
     system("clear");
-    //print(head);
-    create_board(a, head);
-    point = create_food(a, point);
-    mine = NULL;
-    f = 1;
-    load(a, head, point, f, c, direction, mine);
-    printf("\nenter 1 to continue\n");
-    save(head, point); //testing save file
-    reload(&head, &point);
-    //print(head);
-    //printf("\nf=%d %d", point->x, point->y);
-    int p = 1;
+    printf("\n\t\tIK SANP ASA BHI\n\n\n\tOPTION\t\t\tBUTTON\n");
+    if (check_file("save_file.txt") == 1)
+    {
+        printf("\tResume Game\t\t0\n");
+    }
+    printf("\tNew Game\t\t1\n");
+    printf("\tExit\t\t\t2\n");
     scanf("%d", &p);
-    if (p == 1)
+    switch (p)
+    {
+    case 0:
+        reload(&head, &point, &c);
         load(a, head, point, 3, c, direction, mine);
+        break;
+    case 1:
+        head = create_snake(head);
+        system("clear");
+        create_board(a, head);
+        point = create_food(a, point);
+        mine = NULL;
+        FILE *fptr = fopen("save_file.txt", "w");
+        load(a, head, point, 1, c, direction, mine);
+        break;
+    case 2:
+        system("clear");
+        printf("\n\n\t\tTHANK YOU\n\n");
+        break;
+    default:
+        system("clear");
+        printf("\n\n\t\tunknown key pressed\n\n");
+        usleep(1000000);
+        main();
+        break;
+    }
     return 0;
 }
