@@ -477,10 +477,35 @@ void save(struct snake *head, struct food *point, int c)
     write_to_file("save_file.txt", str);
     //printf("\n%s\n", str);
 }
+int retro_check(char pre, char new)
+{
+    switch (new)
+    {
+    case 'w':
+        if (pre == 's')
+            return 0;
+        break;
+    case 'a':
+        if (pre == 'd')
+            return 0;
+        break;
+    case 's':
+        if (pre == 'w')
+            return 0;
+        break;
+    case 'd':
+        if (pre == 'a')
+            return 0;
+        break;
+    }
+    return 1;
+}
 void load(char a[][80], struct snake *head, struct food *point, int f, int c, char direction, struct food *mine)
 {
     long int i = 1;
+    int SPEED = 250000;
     int wall = 0, level = 1;
+    char pred = direction;
     struct food *ptr, *dwall = NULL, *dwall1 = NULL;
     while (direction != '*')
     {
@@ -502,12 +527,14 @@ void load(char a[][80], struct snake *head, struct food *point, int f, int c, ch
             }
             if (c >= 20 && c < 40)
             {
+                SPEED = 200000;
                 level = 2;
                 mine = NULL;
                 mine = create_mine(a, mine);
             }
             else if (c >= 40)
             {
+                SPEED = 150000;
                 level = 3;
                 int mn = rand() % (20 + 1 - 5) + 5;
                 mine = NULL;
@@ -518,11 +545,13 @@ void load(char a[][80], struct snake *head, struct food *point, int f, int c, ch
             }
             if (c >= 60)
             {
+                SPEED = 100000;
                 level = 4;
                 wall = 1;
             }
             if (c >= 80)
             {
+                SPEED = 50000;
                 level = 5;
                 dwall = NULL;
                 for (int u = 0; u < 7; u++)
@@ -559,10 +588,15 @@ void load(char a[][80], struct snake *head, struct food *point, int f, int c, ch
         print_board(a);
         printf("\n\nyour score is %d\n\nLEVEL = %d\n\n", c, level);
         //scanf("%c", &direction);
-        usleep(100000);
+        usleep(SPEED);
         if (kbhit())
         {
+            pred = direction;
             direction = getchar();
+            if (retro_check(pred, direction) == 0)
+            {
+                direction = pred;
+            }
         }
         system("clear");
         if (direction == 'r' || c == 100)
@@ -577,7 +611,7 @@ void load(char a[][80], struct snake *head, struct food *point, int f, int c, ch
     }
     if (c == 100)
     {
-        printf("\n\n\t\tYOU WON");
+        printf("\n\n\t\tYOU WON\n\n");
     }
     if (direction == '*')
     {
