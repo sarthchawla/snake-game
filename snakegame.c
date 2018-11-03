@@ -13,14 +13,6 @@
         perror(":");                                                          \
         exit(-1);                                                             \
     }
-void clean_stdin(void)
-{
-    int c;
-    do
-    {
-        c = getchar();
-    } while (c != '\n' && c != EOF);
-}
 int kbhit(void)
 {
     struct termios oldt, newt;
@@ -709,7 +701,7 @@ void reload(struct snake **head, struct food **point, int *c)
         i++;
     }
     *c = myatoi(0, i, str);
-    for (; str[i] != '\0';)
+    while (str[i] != '\0')
     {
         flag = 0;
         if (str[i] == 's' || str[i] == 'f')
