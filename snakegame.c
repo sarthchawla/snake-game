@@ -54,9 +54,10 @@ struct food
 struct food *create_food(char a[][80], struct food *start)
 {
     int i = (rand() % (18 - 1 + 1)) + 1, j = (rand() % (78 - 1 + 1)) + 1;
-    if (a[i][j] != ' ')
+    while (a[i][j] != ' ')
     {
-        create_food(a, start);
+        i = (rand() % (18 - 1 + 1)) + 1;
+        j = (rand() % (78 - 1 + 1)) + 1;
     }
     struct food *n = (struct food *)malloc(sizeof(struct food));
     n->next = NULL;
@@ -69,9 +70,10 @@ struct food *create_food(char a[][80], struct food *start)
 struct food *create_mine(char a[][80], struct food *start)
 {
     int i = (rand() % (18 - 1 + 1)) + 1, j = (rand() % (78 - 1 + 1)) + 1;
-    if (a[i][j] != ' ')
+    while (a[i][j] != ' ')
     {
-        create_mine(a, start);
+        i = (rand() % (18 - 1 + 1)) + 1;
+        j = (rand() % (78 - 1 + 1)) + 1;
     }
     struct food *n = (struct food *)malloc(sizeof(struct food));
     n->next = NULL;
@@ -245,7 +247,6 @@ struct food *create_dwall(char a[][80], struct food *start, int i)
 {
     static int p = 0, j;
     int k = (rand() % (78 - 1 + 1)) + 1;
-    ;
     if (p == 0)
     {
         if (a[i][k] != ' ')
