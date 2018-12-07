@@ -1,5 +1,5 @@
                                                     IK SANP ASA BHI                                 
-![alt text](screenshots/1.png "menu")![alt text](screenshots/2.png "in game look")![alt text](screenshots/3.png "game over")
+![menu](screenshots/1.png "menu")![in game look](screenshots/2.png "in game look")![game over](screenshots/3.png "game over")
 
 You might have played snake game in old nokia phones. Now, its time to write a project that simulate the similar working of the game. All you need to perform the following steps:
 
